@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="ro">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=devide width, initial-scale=1.0"/>
+        <script> const BASE_URL = "{{ base_url }}"; </script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <title>Date cercetari</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <script src="/static/dashboard.js" defer></script>
+    </head>
+    <body>
+        <h1>Statistica centre universitare</h1>
+        <h2>Introduceti date de cautare</h2>
+
+        <div id="controls">
+            <input type="text" id="nameSearchInput" placeholder="Nume centru universitar">
+            <input type="text" id="filterColumn" placeholder="Filter column (ex: Reg_dezvoltare)">
+            <input type="text" id="filterValue" placeholder="Filter value (ex: Sud)">
+            <input type="text" id="xAxis" placeholder="X axis (ex: Nr_proiecte_finantate)">
+            <input type="text" id="yAxis" placeholder="Y axis (ex: Authority)">
+            <button id="plotButton">Cauta si Ploteaza</button>
+        </div>
+
+        <!-- Chart -->
+        <div id="chart" style="width:100%; height:500px;"></div>
+
+        
+        <ul id="resultsList" class="results-list">
+            <!-- Rezultatele vor fi incarcate dinamic aici -->
+        </ul>
+    </body>
+</html>
