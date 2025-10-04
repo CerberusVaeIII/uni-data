@@ -1,46 +1,59 @@
-//async function searchResearchCenters(query) {
-    //const response = await fetch(BASE_URL + '/query?q=' + encodeURIComponent(query));
-//}
+function setupAutocomplete(inputId, apiEndpoint) {
+  const input = document.getElementById(inputId);
+  if (!input) return; // Safety check
+  
+  const container = input.parentElement;
+  const suggestionBox = container.querySelector('.suggestionBox');
+  
+  let debounceTimer;
+  
+  input.addEventListener("input", () => {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(async () => {
+      const query = input.value.trim();
+      
+      if (!query) {
+        suggestionBox.innerHTML = "";
+        return;
+      }
 
-const nameInput = document.getElementById("nameSearchInput");
-const suggestionBox = document.getElementById("suggestionBox");
+      try {
+        const res = await fetch(`${apiEndpoint}?q=${encodeURIComponent(query)}`);
+        const suggestions = await res.json();
 
-// debounce helper (avoid hammering backend)
-let debounceTimer;
-function debounce(func, delay) {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(func, delay);
+        suggestionBox.innerHTML = "";
+        
+        suggestions.forEach(s => {
+          const div = document.createElement("div");
+          div.className = "suggestion-item";
+          div.textContent = s;
+          
+          div.onclick = () => {
+            input.value = s;
+            suggestionBox.innerHTML = "";
+          };
+          
+          suggestionBox.appendChild(div);
+        });
+      } catch (error) {
+        console.error(`Error fetching suggestions for ${inputId}:`, error);
+      }
+    }, 200);
+  });
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      suggestionBox.innerHTML = "";
+    }
+  });
 }
 
-nameInput.addEventListener("input", () => {
-  debounce(async () => {
-    const query = nameInput.value.trim();
-    if (!query) {
-      suggestionBox.innerHTML = "";
-      return;
-    }
-
-    const res = await fetch(BASE_URL + `/query/suggest?q=${encodeURIComponent(query)}`);
-    const suggestions = await res.json();
-
-    suggestionBox.innerHTML = "";
-    suggestions.forEach(s => {
-      const div = document.createElement("div");
-      div.className = "suggestion-item";
-      div.textContent = s;
-      div.onclick = () => {
-        nameInput.value = s;
-        suggestionBox.innerHTML = "";
-      };
-      suggestionBox.appendChild(div);
+document.addEventListener("click", (e) => {
+  if (!e.target.closest('.search-container')) {
+    document.querySelectorAll('.suggestionBox').forEach(box => {
+      box.innerHTML = "";
     });
-
-    document.addEventListener("click", (e) => {
-        if (!nameInput.contains(e.target) && !suggestionBox.contains(e.target)) {
-            suggestionBox.innerHTML = "";
-        }
-    });
-  }, 200);
+  }
 });
 
 async function displayAllResearchCenters() {
@@ -49,49 +62,39 @@ async function displayAllResearchCenters() {
     const resultsList = document.getElementById('resultsList');
     resultsList.innerHTML = '';
 
-    data.forEach((center) => { // Add a list element to it for each event extracted before
-            const li = document.createElement("li");
-            li.innerHTML = `
-                <strong>${center.Entitate}</strong><br>
-                Proiecte finantate: ${center.Nr_proiecte_finantate}<br>
-                Abreviere: ${center.Abreviere}<br>
-                Tip: ${center.Attribute_tip_institutie_original}<br>
-                Regiune: ${center.Reg_dezvoltare}<br>
-                Pr_instit_coordonatoare: ${center.Pr_instit_coordonatoare}<br>
-                Pr_instit_total: ${center.Pr_instit_total}<br>
-                merge1_degree: ${center.merge1_degree}<br>
-                Eigenvcentral_gephi: ${center.Eigenvcentral_gephi}<br>
-                Closeness_central_gephi: ${center.Closeness_central_gephi}<br>
-                Beetweeness_gephi: ${center.Beetweeness_gephi}<br>
-                Weighteddegree_Gephi: ${center.Weighteddegree_Gephi}<br>
-                Authority: ${center.Authority}<br>
-            `;
-            resultsList.appendChild(li);
-        });
+    data.forEach((center) => {
+        const li = document.createElement("li");
+        li.innerHTML = `
+            <strong>${center.Entitate}</strong><br>
+            Proiecte finantate: ${center.Nr_proiecte_finantate}<br>
+            Abreviere: ${center.Abreviere}<br>
+            Tip: ${center.Attribute_tip_institutie_original}<br>
+            Regiune: ${center.Reg_dezvoltare}<br>
+            Pr_instit_coordonatoare: ${center.Pr_instit_coordonatoare}<br>
+            Pr_instit_total: ${center.Pr_instit_total}<br>
+            merge1_degree: ${center.merge1_degree}<br>
+            Eigenvcentral_gephi: ${center.Eigenvcentral_gephi}<br>
+            Closeness_central_gephi: ${center.Closeness_central_gephi}<br>
+            Beetweeness_gephi: ${center.Beetweeness_gephi}<br>
+            Weighteddegree_Gephi: ${center.Weighteddegree_Gephi}<br>
+            Authority: ${center.Authority}<br>
+        `;
+        resultsList.appendChild(li);
+    });
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-    displayAllResearchCenters();
-});
 
 async function plotDynamic() {
     const params = new URLSearchParams({
         x: document.getElementById("xAxis").value,
         y: document.getElementById("yAxis").value,
-        highlight: document.getElementById("nameSearchInput").value
+        highlight: document.getElementById("nameSearchInput").value,
+        filterColumn: document.getElementById("filterColumn").value,
+        filterValue: document.getElementById("filterValue").value
     });
 
-    const filterCol = document.getElementById("filterColumn").value;
-    const filterVal = document.getElementById("filterValue").value;
-    
-    if (filterCol && filterVal) {
-        params.append(filterCol, filterVal); // This sends the column name directly as a parameter
-    }
-
-    const response = await fetch(`/query/dynamic?${params}`);
+    const response = await fetch(BASE_URL + `/query/dynamic?${params}`);
     const data = await response.json();
 
-    // Default trace for all universities
     const traceAll = {
         x: data.x,
         y: data.y,
@@ -104,7 +107,6 @@ async function plotDynamic() {
 
     let traces = [traceAll];
 
-    // Add highlight trace if found
     if (data.highlight) {
         const idx = data.labels.findIndex(l => l.includes(data.highlight));
         if (idx !== -1) {
@@ -126,4 +128,17 @@ async function plotDynamic() {
     });
 }
 
-document.getElementById("plotButton").addEventListener("click", plotDynamic);
+document.addEventListener("DOMContentLoaded", () => {
+  setupAutocomplete("nameSearchInput", "/query/suggest/name");
+  setupAutocomplete("filterColumn", "/query/suggest/column");
+  setupAutocomplete("filterValue", "/query/suggest/region");
+  setupAutocomplete("xAxis", "/query/suggest/column");
+  setupAutocomplete("yAxis", "/query/suggest/column");
+
+  displayAllResearchCenters();
+
+  const plotButton = document.getElementById("plotButton");
+  if (plotButton) {
+    plotButton.addEventListener("click", plotDynamic);
+  }
+});

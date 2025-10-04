@@ -25,33 +25,54 @@ async def dynamic_query(
     request: Request,
     x: str = Query(...),
     y: str = Query(...),
-    highlight: str = Query(None)
+    highlight: str = Query(None),
+    filterColumn: str = Query(None),
+    filterValue: str = Query(None)
 ):
     df = pd.read_csv(r'src\date_univ_cleaned.csv')
 
-    query_params = dict(request.query_params)
-    
-    # Remove the explicitly handled parameters
-    handled_params = {'x', 'y', 'highlight'}
-    filters = {k: v for k, v in query_params.items() if k not in handled_params}
-
-    # Apply filters dynamically
-    for col, val in filters.items():
-        if col in df.columns and val:
-            df = df[df[col].astype(str).str.contains(val, case=False, na=False)]
+    if filterColumn and filterValue and filterColumn in df.columns:
+        df = df[df[filterColumn].astype(str).str.contains(filterValue, case=False, na=False)]
 
     result = {
         "x": df[x].tolist(),
         "y": df[y].tolist(),
         "labels": df["Entitate"].tolist(),
-        "highlight": highlight
+        "highlight": highlight,
+        "x_name": x,
+        "y_name": y
     }
     return JSONResponse(content=result)
 
-@router.get("/suggest")
-async def suggest(q: str = Query("")):
+# @router.get("/suggest")
+# async def suggest(q: str = Query("")):
+#     df = pd.read_csv(r'src\date_univ_cleaned.csv')
+#     values = df["Entitate"].dropna().unique().tolist()
+#     q = q.lower()
+#     matches = [v for v in values if q in v.lower()]
+#     return JSONResponse(matches[:10])  # return top 10
+
+@router.get("/suggest/name")
+async def suggest_name(q: str = Query("")):
     df = pd.read_csv(r'src\date_univ_cleaned.csv')
     values = df["Entitate"].dropna().unique().tolist()
     q = q.lower()
     matches = [v for v in values if q in v.lower()]
-    return JSONResponse(matches[:10])  # return top 10
+    return JSONResponse(matches[:10])
+
+@router.get("/suggest/column")
+async def suggest_column(q: str = Query("")):
+    df = pd.read_csv(r'src\date_univ_cleaned.csv')
+    # Return column names
+    columns = df.columns.tolist()
+    q = q.lower()
+    matches = [c for c in columns if q in c.lower()]
+    return JSONResponse(matches[:10])
+
+@router.get("/suggest/region")
+async def suggest_region(q: str = Query("")):
+    df = pd.read_csv(r'src\date_univ_cleaned.csv')
+    values = df["Reg_dezvoltare"].dropna().unique().tolist()
+    q = q.lower()
+    matches = [v for v in values if q in v.lower()]
+    return JSONResponse(matches[:10])

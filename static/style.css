@@ -1,24 +1,49 @@
-.search-container {
-    position: relative;
-    display: inline-block;
+#controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: flex-start;
 }
 
-#nameSearchInput {
+.search-container {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+/* Style ALL inputs in controls */
+#controls input[type="text"] {
+    width: 100%;
     padding: 10px 14px;
     font-size: 14px;
     border: 2px solid #ddd;
     border-radius: 6px;
     box-sizing: border-box;
     transition: border-color 0.2s;
-    min-width: 300px;
 }
 
-#nameSearchInput:focus {
+#controls input[type="text"]:focus {
     outline: none;
     border-color: #4a90e2;
 }
 
-#suggestionBox {
+#controls button {
+    padding: 10px 20px;
+    font-size: 14px;
+    background-color: #4a90e2;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+#controls button:hover {
+    background-color: #357abd;
+}
+
+.suggestionBox {
     position: absolute;
     top: 100%;
     left: 0;
@@ -34,7 +59,7 @@
     margin-top: -2px;
 }
 
-#suggestionBox:empty {
+.suggestionBox:empty {
     display: none;
 }
 
