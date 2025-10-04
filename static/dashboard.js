@@ -20,7 +20,7 @@ nameInput.addEventListener("input", () => {
       return;
     }
 
-    const res = await fetch(`/query/suggest?q=${encodeURIComponent(query)}`);
+    const res = await fetch(BASE_URL + `/query/suggest?q=${encodeURIComponent(query)}`);
     const suggestions = await res.json();
 
     suggestionBox.innerHTML = "";
