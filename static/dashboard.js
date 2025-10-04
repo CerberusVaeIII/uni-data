@@ -26,12 +26,19 @@ nameInput.addEventListener("input", () => {
     suggestionBox.innerHTML = "";
     suggestions.forEach(s => {
       const div = document.createElement("div");
+      div.className = "suggestion-item";
       div.textContent = s;
       div.onclick = () => {
         nameInput.value = s;
         suggestionBox.innerHTML = "";
       };
       suggestionBox.appendChild(div);
+    });
+
+    document.addEventListener("click", (e) => {
+        if (!nameInput.contains(e.target) && !suggestionBox.contains(e.target)) {
+            suggestionBox.innerHTML = "";
+        }
     });
   }, 200);
 });

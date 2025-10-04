@@ -14,8 +14,10 @@
         <h2>Introduceti date de cautare</h2>
 
         <div id="controls">
-            <input type="text" id="nameSearchInput" placeholder="Nume centru universitar">
-            <div id="suggestionBox"></div>
+            <div class="search-container">
+                <input type="text" id="nameSearchInput" placeholder="Nume centru universitar" autocomplete="off">
+                <div id="suggestionBox"></div>
+            </div>
             <input type="text" id="filterColumn" placeholder="Filter column (ex: Reg_dezvoltare)">
             <input type="text" id="filterValue" placeholder="Filter value (ex: Sud)">
             <input type="text" id="xAxis" placeholder="X axis (ex: Nr_proiecte_finantate)">
