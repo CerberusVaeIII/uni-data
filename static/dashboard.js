@@ -1,6 +1,22 @@
-function setupAutocomplete(inputId, apiEndpoint) {
+const DISPLAY_TO_COLUMN = {
+    'Nume Instituție': 'Entitate',
+    'Număr Proiecte Finanțate': 'Nr_proiecte_finantate',
+    'Abreviere': 'Abreviere',
+    'Tip Instituție': 'Attribute_tip_institutie_original',
+    'Regiune Dezvoltare': 'Reg_dezvoltare',
+    'Proiecte ca Coordonator': 'Pr_instit_coordonatoare',
+    'Proiecte Total': 'Pr_instit_total',
+    'Grad Conexiuni': 'merge1_degree',
+    'Centralitate Eigenvector': 'Eigenvcentral_gephi',
+    'Centralitate Proximitate': 'Closeness_central_gephi',
+    'Centralitate Intermediere': 'Beetweeness_gephi',
+    'Grad Ponderat': 'Weighteddegree_Gephi',
+    'Autoritate': 'Authority'
+};
+
+function setupAutocomplete(inputId, apiEndpoint, useMapping = false) {
   const input = document.getElementById(inputId);
-  if (!input) return; // Safety check
+  if (!input) return; 
   
   const container = input.parentElement;
   const suggestionBox = container.querySelector('.suggestionBox');
@@ -84,12 +100,16 @@ async function displayAllResearchCenters() {
 }
 
 async function plotDynamic() {
+    const xDisplay = document.getElementById("xAxis").value;
+    const yDisplay = document.getElementById("yAxis").value;
+    
+    const xCol = DISPLAY_TO_COLUMN[xDisplay] || xDisplay;
+    const yCol = DISPLAY_TO_COLUMN[yDisplay] || yDisplay;
+    
     const params = new URLSearchParams({
-        x: document.getElementById("xAxis").value,
-        y: document.getElementById("yAxis").value,
-        highlight: document.getElementById("nameSearchInput").value,
-        filterColumn: document.getElementById("filterColumn").value,
-        filterValue: document.getElementById("filterValue").value
+        x: xCol,
+        y: yCol,
+        highlight: document.getElementById("nameSearchInput").value
     });
 
     const response = await fetch(BASE_URL + `/query/dynamic?${params}`);
@@ -124,19 +144,17 @@ async function plotDynamic() {
     }
 
     Plotly.react("chart", traces, {
-        title: `${data.y_name || "Y"} vs ${data.x_name || "X"}`
+        title: `${yDisplay} vs ${xDisplay}`
     });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   setupAutocomplete("nameSearchInput", "/query/suggest/name");
-  setupAutocomplete("filterColumn", "/query/suggest/column");
-  setupAutocomplete("filterValue", "/query/suggest/region");
   setupAutocomplete("xAxis", "/query/suggest/column");
   setupAutocomplete("yAxis", "/query/suggest/column");
-
-  displayAllResearchCenters();
-
+  
+  //displayAllResearchCenters();
+  
   const plotButton = document.getElementById("plotButton");
   if (plotButton) {
     plotButton.addEventListener("click", plotDynamic);

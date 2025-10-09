@@ -10,6 +10,24 @@ router = APIRouter(
     tags=["query"]
 )
 
+COLUMN_DISPLAY_NAMES = {
+    'Entitate': 'Nume Instituție',
+    'Nr_proiecte_finantate': 'Număr Proiecte Finanțate',
+    'Abreviere': 'Abreviere',
+    'Attribute_tip_institutie_original': 'Tip Instituție',
+    'Reg_dezvoltare': 'Regiune Dezvoltare',
+    'Pr_instit_coordonatoare': 'Proiecte ca Coordonator',
+    'Pr_instit_total': 'Proiecte Total',
+    'merge1_degree': 'Grad Conexiuni',
+    'Eigenvcentral_gephi': 'Centralitate Eigenvector',
+    'Closeness_central_gephi': 'Centralitate Proximitate',
+    'Beetweeness_gephi': 'Centralitate Intermediere',
+    'Weighteddegree_Gephi': 'Grad Ponderat',
+    'Authority': 'Autoritate'
+}
+
+DISPLAY_TO_COLUMN = {v: k for k, v in COLUMN_DISPLAY_NAMES.items()}
+
 @router.get("/")
 async def return_all_entries(request: Request):
     return config.render_template(request, "dashboard.html")
@@ -26,13 +44,13 @@ async def dynamic_query(
     x: str = Query(...),
     y: str = Query(...),
     highlight: str = Query(None),
-    filterColumn: str = Query(None),
-    filterValue: str = Query(None)
+    #filterColumn: str = Query(None),
+    #filterValue: str = Query(None)
 ):
     df = pd.read_csv(r'src\date_univ_cleaned.csv')
 
-    if filterColumn and filterValue and filterColumn in df.columns:
-        df = df[df[filterColumn].astype(str).str.contains(filterValue, case=False, na=False)]
+    # if filterColumn and filterValue and filterColumn in df.columns:
+    #     df = df[df[filterColumn].astype(str).str.contains(filterValue, case=False, na=False)]
 
     result = {
         "x": df[x].tolist(),
@@ -63,16 +81,19 @@ async def suggest_name(q: str = Query("")):
 @router.get("/suggest/column")
 async def suggest_column(q: str = Query("")):
     df = pd.read_csv(r'src\date_univ_cleaned.csv')
-    # Return column names
+    
     columns = df.columns.tolist()
+
+    display_names = [COLUMN_DISPLAY_NAMES.get(c, c) for c in columns]
+
     q = q.lower()
-    matches = [c for c in columns if q in c.lower()]
+    matches = [name for name in display_names if q in name.lower()]
     return JSONResponse(matches[:10])
 
-@router.get("/suggest/region")
-async def suggest_region(q: str = Query("")):
-    df = pd.read_csv(r'src\date_univ_cleaned.csv')
-    values = df["Reg_dezvoltare"].dropna().unique().tolist()
-    q = q.lower()
-    matches = [v for v in values if q in v.lower()]
-    return JSONResponse(matches[:10])
+# @router.get("/suggest/region")
+# async def suggest_region(q: str = Query("")):
+#     df = pd.read_csv(r'src\date_univ_cleaned.csv')
+#     values = df["Reg_dezvoltare"].dropna().unique().tolist()
+#     q = q.lower()
+#     matches = [v for v in values if q in v.lower()]
+#     return JSONResponse(matches[:10])
